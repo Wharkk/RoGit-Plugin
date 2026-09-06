@@ -2,7 +2,7 @@
 
 # RoGit - Git for Roblox Studio
 
-**Full GitHub version control for Roblox Studio. Push, pull, diff, branch, and collaborate with others professionally without leaving the IDE.**
+**Full GitHub version control for Roblox Studio (Plugin). Push, pull, diff, branch, and collaborate with others professionally without leaving the IDE.**
 
 ---
 
