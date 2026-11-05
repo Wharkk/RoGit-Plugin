@@ -174,6 +174,8 @@ README.md                        -- From ServerStorage.README
 - **CRLF normalization** is not applied, cross-platform teams should agree on a line-ending convention
 - **Conflict resolver** is whole-file only (no per-line merge)
 - **Branch switching** during an in-flight operation may cause unexpected behavior
+- **Breaks PackageLink instances** when pulling from GitHub (planned to be resolved in the CLI version)
+- **Large Roblox Studio projects** operations might glitch when pulling or pushing (API limitations, will be fixed in the CLI version)
 
 ---
 
