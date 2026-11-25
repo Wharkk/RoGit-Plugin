@@ -1,3 +1,7 @@
+> ⚠️ **Deprecation notice:** This plugin will be deprecated and archived in favor of **RoGit CLI**, which is currently in development.
+>
+> For more info, see [Known Limitations](#known-limitations).
+
 ![RoGit Logo](images/Small_RoGit_Icon_Semi_Focused.png)
 
 # RoGit - Git for Roblox Studio
@@ -168,7 +172,7 @@ README.md                        -- From ServerStorage.README
 
 ---
 
-## Known Limitations (v1)
+## Known Limitations
 
 - **Dotted instance names** (e.g., `v1.0.2`) may break object reference resolution
 - **CRLF normalization** is not applied, cross-platform teams should agree on a line-ending convention
