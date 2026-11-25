@@ -1,198 +1,88 @@
 > ⚠️ **Deprecation notice:** This plugin will be deprecated and archived in favor of **RoGit CLI**, which is currently in development.
 >
-> For more info, see [Known Limitations](#known-limitations).
+> See [Known Limitations](#known-limitations) for the current plugin's constraints.
 
 ![RoGit Logo](images/Small_RoGit_Icon_Semi_Focused.png)
 
-# RoGit - Git for Roblox Studio
+# RoGit: GitHub integration for Roblox Studio
 
-**Full GitHub version control for Roblox Studio (Plugin). Push, pull, diff, branch, and collaborate with others professionally without leaving the IDE.**
+RoGit is a Luau plugin for syncing scripts and supported instances between Roblox Studio and GitHub. Review changes, commit selected files, pull updates, and manage branches from Studio through the GitHub REST API. No local Git installation or external sync process is required.
 
----
+## Features
 
-## About
-
-RoGit brings real Git workflows to Roblox Studio. Connect any GitHub repository and manage your entire project with professional version control tools, all from a clean, in-editor UI built on the Catppuccin Mocha theme.
-
-Built for teams and solo developers who want real version control without external toolchains like Rojo or manual file exports. RoGit handles serialization, conflict resolution, and collaboration features so you can focus on building your game.
-
----
-
-## Why Choose RoGit?
-
-### Zero External Tools
-
-No CLI. No file watchers. No syncing folders. Connect your GitHub repo, click Push, and your project is versioned. Everything runs inside Studio with a native plugin UI.
-
-### Smart Serialization
-
-RoGit doesn't just dump raw data, it understands Roblox. Object references (PrimaryPart, Welds, Motor6D, Adornee) survive round-trips. Same-name siblings are disambiguated automatically. Path-unsafe instance names (`Foo/Bar`, `CON`, `Weird*?"<>|:Chars`, empty strings) are sanitized for git and restored on pull. Script metadata (Enabled, RunContext) persists via `.meta.json` sidecars.
-
-### Safe by Design
-
-Pull never overwrites your unpushed local edits, dirty files are preserved with a clear log message. Every pull and clone wraps in ChangeHistoryService, so one Ctrl+Z reverts the entire operation. A confirmation dialog prevents accidental Quick Pushes. Cold pulls are gated behind a remote cache fetch so conflict detection always works.
-
-### Team Ready
-
-Create and switch branches, open pull requests, monitor GitHub Actions, create tagged releases, and see your team's recent activity, all without leaving Studio.
-
----
-
-## Feature Table
-
-| Category | Feature | Description |
-|---|---|---|
-| **Connection** | Connect / Disconnect | Owner, repo, branch, PAT authentication |
-| | Clone Repository | Supports `owner/repo` and `https://github.com/...` formats |
-| | Remember Token | Persists PAT across sessions (opt-in) |
-| | Masked PAT Input | Asterisk masking, selectable, paste-friendly |
-| | First-Time Setup Wizard | 4-step guided onboarding with branch + remember token, auto-shows on first launch |
-| | Saved Settings | Owner, repo, branch persist across sessions |
-| **Git Core** | Push (Selective) | Checkbox per file (default unchecked), commit message, progress bar |
-| | Push (Quick) | One-click push all with confirmation dialog and auto-generated message |
-| | Pull | Downloads and applies remote changes while preserving unpushed local edits |
-| | Pull (Cold Gate) | First pull after connect forces remote cache before applying, no blind overwrites |
-| | Conflict Detection | Identifies files changed both locally and remotely |
-| | Conflict Resolution | Side-by-side merge editor: Accept Theirs / Accept Mine per file |
-| | Remote Delete | Files deleted on remote are removed locally on pull via reconciliation |
-| | Branch Create / Switch | Dropdown in header, immediate switching |
-| | Branch Merge | Merge any branch into current, conflict error handling |
-| | Revert Commit | Hover R button on any commit in history |
-| | Auto-Refresh Staging | Debounced, triggers on DescendantAdded/Removing with applyingRemote guard |
-| | Undo Support | Every pull/clone wrapped in ChangeHistoryService, Ctrl+Z reverts the full operation |
-| **Diff** | Diff Viewer | Float DockWidget, opens like a script tab |
-| | File Sidebar | Lists changed files with [A]/[M]/[D] badges |
-| | Syntax Highlighting | Full Luau tokenizer: keywords, strings, comments, numbers, types, operators |
-| | Line Numbers + Gutter | Colored gutter bars, +/- prefixes |
-| | Minimap | Right-side change distribution, clickable to jump |
-| **History** | Commit History | Last 20 commits with hash, message, author, date |
-| | File History | Per-file commit log via Explorer selection |
-| **Collaboration** | Pull Requests | Create PR (title, body, base branch) + list open PRs |
-| | Team Activity Feed | Recent commits as author/time/message feed |
-| | GitHub Actions Status | Last 5 workflow runs with color-coded pass/fail |
-| **Releases** | Tags / Releases | Create releases with tag, name, notes. List existing |
-| **Search** | Search Across Files | Local grep through all serialized files, path:line results |
-| **Serialization** | Scripts | `.server.luau`, `.client.luau`, `.luau` with `_init` folder pattern |
-| | Instances | `.json` with properties, attributes, tags |
-| | Object References | PrimaryPart, Part0/Part1, Attachment0/1, Adornee each deferred resolution on pull |
-| | Same-Name Siblings | `__N` disambiguation with class-aware matching on apply |
-| | Path-Safe Names | Reserved Windows name, special characters or even empty strings in any instance's name are all sanitized and restored |
-| | Script Metadata | `.meta.json` sidecar for attributes, tags, Enabled, RunContext |
-| | `_init` Sentinel | User-named `_init` instances safely escaped to `__init` and restored |
-| | README.md | ServerStorage/README ModuleScript synced as `README.md` |
-| | .gitignore | Per-service `_gitignore` ModuleScript with name patterns |
-| | PackageLink | Serialized to JSON, restored via `InsertService:LoadPackageAsset` |
-| **Project Setup** | Git Init | Creates README + `_gitignore` in all services |
-| | Git Init Toolbar Button | Standalone toolbar action, opens output automatically |
-| **UI / UX** | Catppuccin Mocha Theme | Dark theme, consistent across all panels |
-| | Icon Buttons | Image-based section actions with hover tinting |
-| | Tooltips | Hover labels on all icon buttons, auto-flip if near edge |
-| | Scrollable Output | Per-line TextBox output with auto-tail and pinned-to-bottom tracking |
-| | Header QoL | Buttons hidden when disconnected, home button for navigation |
-| | Auto-Backup | 5-minute interval with help text, opt-in checkbox, persists across sessions |
-| | Dropdown Dismiss | Click-catcher overlay closes dropdowns on outside click |
-| | Confirm Dialog | Modal overlay with Cancel/Confirm for destructive actions |
-| | Rate-Limit Aware | Skips metadata fetches for collapsed sections, reducing API calls by 60-70% |
-| | ClickableWhenViewportHidden | Toolbar buttons work from Script Editor |
-| **Architecture** | 11 Modules | App, Components, DiffEngine, GitHubClient, InstanceSerializer, DataTypes, PropertyMap, Theme, Types, Base64, Init |
-| | 3 DockWidgets | Main (Right), Output (Bottom), Diff (Float) |
-| | 3 Toolbar Buttons | RoGit, Output, Git Init |
-
----
+- **Push and pull:** select changed files for a commit, or use Quick Push with confirmation. Pull compares local files with cached and newly fetched remote content and offers whole-file conflict resolution.
+- **Review changes:** Luau syntax highlighting, line diffs, commit and file history, and search across serialized project files.
+- **GitHub workflow:** create and select branches, request branch merges, create and list pull requests and releases, and view workflow runs and recent commit activity.
+- **Project setup:** choose which supported services to sync and exclude instances by name. Optional auto-backup checks for changes every five minutes and pushes through the commit workflow while connected and idle.
+- **Request handling:** cached blobs are reused by SHA, tree writes are batched, and collapsed metadata panels defer their requests. These reduce requests; GitHub and Studio limits still apply.
 
 ## Installation
 
-### From the Creator Hub
+1. Install [RoGit from the Roblox Creator Hub](https://create.roblox.com/store/asset/79063996456836/RoGit).
+2. Open Roblox Studio and click **RoGit** in the plugin toolbar.
 
-1. Install **RoGit** from the [Roblox Creator Hub](https://create.roblox.com/store)
-2. Open Roblox Studio
-3. Click the **RoGit** button in the toolbar
-
-### From Source
-
-1. Download `RoGit.rbxmx` from the [Releases](../../releases) page
-2. Place it in your local plugins folder: `%localappdata%/Roblox/Plugins/`
-3. Restart Roblox Studio
-
----
+Source code and version history are available in this repository and on the [releases page](https://github.com/Wharkk/RoGit-Plugin/releases).
 
 ## Quick Start
 
-### 1. Get a GitHub Personal Access Token
+### Connect a project
 
-Go to [github.com/settings/tokens](https://github.com/settings/tokens) and create a **Classic** token with the `repo` scope. Copy it immediately, and store it somewhere safe. It's only shown once.
+1. Create a GitHub repository with an initial commit, such as a README, or use an existing repository.
+2. Create a [personal access token](https://github.com/settings/tokens). The plugin's setup guide uses a classic token with the `repo` scope; your account must have access to the repository.
+3. In RoGit, enter the repository owner, name, branch, and token, then click **Connect**. The first-time guide covers welcome, repository creation, and token creation before opening this connection panel.
+4. Use **Exclude Services** to omit services you do not want to sync. **Remember token** is optional and stores the token in Studio plugin settings.
 
-### 2. Open RoGit
+To import an existing RoGit-formatted project, choose **Clone Repository** and enter `owner/repo` or its GitHub URL. Clone applies the serialized files to the open place; use an empty place for a new import.
 
-Click the RoGit toolbar button. The 4-step setup wizard guides you through connecting:
+### Commit changes
 
-1. **Welcome** - Overview of what RoGit does
-2. **Token Guide** - Step-by-step PAT creation instructions
-3. **Connect** - Enter owner, repo, branch, token, and hit Connect & Start
+1. Make changes in Studio and review the **Changed Files** list.
+2. Select the files to include and enter a commit message.
+3. Click **Commit & Push** and check the output for the result.
 
-### 3. Push Your First Commit
+### Pull updates
 
-1. Make changes in Studio (add a Part, edit a Script)
-2. Open the **Changed Files** panel, your changes appear with `[A]`/`[M]`/`[D]` badges
-3. Check the files you want to push
-4. Write a commit message (e.g. "Initial commit") and click **Commit & Push**
+Click the pull button to fetch remote files and apply changes. Files detected as changed both locally and remotely open in the conflict resolver, where you choose **Accept Mine** or **Accept Theirs** for each file.
 
-### 4. Pull Remote Changes
+Pull preserves detected local edits when applying remote file content, but remote deletions are handled separately and can remove locally edited instances. Save a separate copy of the place before pulling or cloning. See [Known Limitations](#known-limitations).
 
-Click the pull icon ![Pull Icon](images/Really_Small_RoGit_Pull.png) to fetch and apply remote changes. If there are conflicts, the side-by-side resolver opens automatically.
+## Serialization
 
----
+Scripts use `.server.luau`, `.client.luau`, or `.luau` files. Supported instance properties, attributes, and tags use JSON. Instances with children use a directory containing an `_init` file; script metadata uses `.meta.json` sidecars when needed.
 
-## Requirements
-
-- A GitHub account with a Personal Access Token (with the `repo` scope)
-- A GitHub repository (public or private)
-
----
-
-## Serialized File Structure
-
-```
+```text
 ServerScriptService/
-  MyScript.server.luau            -- Script source
-  MyScript.meta.json              -- Attributes, tags, Enabled, RunContext
-  MyModule.luau                   -- ModuleScript
+  MyScript.server.luau
+  MyScript.meta.json
   MyFolder/
-    _init.json                    -- Folder properties
-    ChildPart.json                -- Part with properties, attributes, tags
-    Wall.json                     -- First same-name sibling
-    Wall__2.json                  -- Second (disambiguated)
+    _init.json
+    ChildModule.luau
 Workspace/
   Model/
-    _init.json                    -- Model properties (including PrimaryPart ref)
+    _init.json
     Part.json
-    WeldConstraint.json           -- With Part0/Part1 references
-README.md                        -- From ServerStorage.README
+    WeldConstraint.json
+README.md
 ```
 
----
+- Property coverage is defined in [PropertyMap.luau](ServerScriptService/RoGit/Init/PropertyMap.luau). The format does not capture every property or replace a complete place backup.
+- Supported object references, including `PrimaryPart`, `Part0`/`Part1`, attachments, and `Adornee`, are resolved after instances are applied.
+- File paths sanitize instance names and disambiguate duplicate siblings with numbered suffixes. Original names are stored in JSON or script metadata when renamed.
+- `ServerStorage/README` can supply the repository's root `README.md`.
+- A `_gitignore` ModuleScript under a synced service can return a list of exact instance names to exclude within that service. This is not Git's pattern-based `.gitignore` format.
+- Downloaded blobs normalize CRLF and CR line endings to LF. The line-diff viewer also ignores trailing whitespace on each line.
 
 ## Known Limitations
 
-- **Dotted instance names** (e.g., `v1.0.2`) may break object reference resolution
-- **CRLF normalization** is not applied, cross-platform teams should agree on a line-ending convention
-- **Conflict resolver** is whole-file only (no per-line merge)
-- **Branch switching** during an in-flight operation may cause unexpected behavior
-- **Breaks PackageLink instances** when pulling from GitHub (planned to be resolved in the CLI version)
-- **Large Roblox Studio projects** operations might glitch when pulling or pushing (API limitations, will be fixed in the CLI version)
+- **Serialization coverage:** Terrain and Camera instances are skipped, and only the properties listed in `PropertyMap` are serialized. Asset references do not embed the referenced assets.
+- **Object references and names:** references use dot-separated instance paths. Names containing dots and duplicate sibling names can make reference resolution ambiguous. Filename disambiguation does not remove this limitation.
+- **Packages:** PackageLink restoration is incomplete. The import path attempts to load a package asset and can replace its parent model; do not rely on it to preserve package links, versions, or local package edits.
+- **Pull and conflict handling:** resolution selects an entire local or remote file; there is no per-line merge. Remote deletion reconciliation does not check for local edits and has limitations with renamed or duplicate instances. Pull and clone attempt Studio undo recordings, but these are not a guarantee of atomic application or recovery after an error.
+- **Branch selection:** selecting a branch changes the remote target and refreshes its cached files; it does not check out that branch into the place. Wait for ongoing operations to finish before changing branches.
+- **Incomplete downloads and large projects:** a truncated tree response or failed blob download can leave an incomplete remote file set. Pull can continue with that set, including deletion reconciliation. Caching and batching do not guarantee successful synchronization of large projects; review the output and keep a separate place backup.
 
----
+## License and Author
 
-## License
+[MIT License](LICENSE). Created by **wharkk**.
 
-MIT License - See [LICENSE](LICENSE) for details
-
----
-
-## Credits
-
-**Author:** **wharkk** ([@wharkk_](https://discord.com/users/629991962522681365))
-
-**Portfolio:** [wharkk-developer.framer.website](https://wharkk-developer.framer.website)
-
-Built with Luau. Powered by the GitHub REST API.
+[Portfolio](https://wharkk-developer.framer.website) · [Release history](https://github.com/Wharkk/RoGit-Plugin/releases)
